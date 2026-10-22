@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Storefront can only CREATE orders; the CMS reads/updates them.
+    match /orders/{id} {
+      allow create: if request.resource.data.status == 'new'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.keys().hasAll(['name', 'phone', 'address', 'productName', 'quantity'])
+        && request.resource.data.name is string && request.resource.data.name.size() < 200;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Contact-us form submissions.
+    match /messages/{id} {
+      allow create: if request.resource.data.status == 'unread'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.keys().hasAll(['name', 'email', 'subject', 'message'])
+        && request.resource.data.message is string && request.resource.data.message.size() < 5000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /products/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Admin marker docs are created with scripts/create-admin.mjs (Admin SDK).
+    match /admins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

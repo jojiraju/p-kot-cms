@@ -1,0 +1,262 @@
+[
+  {
+    "id": "chilly-powder",
+    "name": "Chilly Powder",
+    "category": "Ground Spices",
+    "priceINR": "450",
+    "priceUSD": "5.99",
+    "unit": "kg",
+    "description": "Premium red chilly powder, finely ground from sun-dried chillies. Known for its vibrant color and balanced heat, it is the soul of Indian cuisine.",
+    "image": "/products/chilly-powder-packed.png"
+  },
+  {
+    "id": "garam-masala",
+    "name": "Garam Masala",
+    "category": "Ground Spices",
+    "priceINR": "850",
+    "priceUSD": "11.99",
+    "unit": "kg",
+    "description": "A masterfully crafted blend of premium warm spices. This authentic Garam Masala adds complexity, warmth, and a finishing touch of magic to your signature recipes.",
+    "image": "/products/garam-masala-packed.png"
+  },
+  {
+    "id": "turmeric-powder",
+    "name": "Turmeric Powder",
+    "category": "Ground Spices",
+    "priceINR": "380",
+    "priceUSD": "5.49",
+    "unit": "kg",
+    "description": "Finely ground turmeric powder with high curcumin content. This golden spice is essential for flavor, color, and its renowned medicinal properties.",
+    "image": "/products/turmeric-powder-packed.png"
+  },
+  {
+    "id": "coriander-powder",
+    "name": "Coriander Powder",
+    "category": "Ground Spices",
+    "priceINR": "320",
+    "priceUSD": "4.49",
+    "unit": "kg",
+    "description": "Highly aromatic coriander powder made from premium eagle-grade seeds. Adds a fresh, citrusy depth and serves as a cooling balance in spicy dishes.",
+    "image": "/products/coriander-powder.png"
+  },
+  {
+    "id": "cardamom",
+    "name": "Cardamom",
+    "category": "Whole Spices",
+    "priceINR": "2400",
+    "priceUSD": "29.99",
+    "unit": "kg",
+    "description": "Exquisite green cardamom pods with a sweet, eucalyptus-like aroma. Sourced from the high-altitude plantations of Idukki.",
+    "image": "/products/cardamom-packed.png"
+  },
+  {
+    "id": "black-pepper",
+    "name": "Black Pepper",
+    "category": "Whole Spices",
+    "priceINR": "750",
+    "priceUSD": "9.99",
+    "unit": "kg",
+    "description": "Premium Malabar black pepper, known for its bold flavor and intense pungency. Hand-harvested and sun-dried to perfection.",
+    "image": "/products/black-pepper-packed.png"
+  },
+  {
+    "id": "cinnamon",
+    "name": "Cinnamon",
+    "category": "Whole Spices",
+    "priceINR": "1200",
+    "priceUSD": "14.99",
+    "unit": "kg",
+    "description": "Authentic Ceylon cinnamon sticks with a delicate, sweet flavor and woody aroma. Perfect for both sweet and savory dishes.",
+    "image": "/products/cinnamon-packed.png"
+  },
+  {
+    "id": "nutmeg",
+    "name": "Nutmeg",
+    "category": "Whole Spices",
+    "priceINR": "950",
+    "priceUSD": "11.99",
+    "unit": "kg",
+    "description": "Premium whole nutmeg kernels with a warm, nutty, and slightly sweet flavor. Ideal for grating fresh into your favorite recipes.",
+    "image": "/products/nutmeg-packed.png"
+  },
+  {
+    "id": "cloves",
+    "name": "Cloves",
+    "category": "Whole Spices",
+    "priceINR": "1100",
+    "priceUSD": "12.99",
+    "unit": "kg",
+    "description": "Highly aromatic whole cloves, rich in essential oils. These hand-picked flower buds add deep, warm flavor to your culinary creations.",
+    "image": "/products/cloves-packed.png"
+  },
+  {
+    "id": "mace",
+    "name": "Mace",
+    "category": "Whole Spices",
+    "priceINR": "2800",
+    "priceUSD": "34.99",
+    "unit": "kg",
+    "description": "The delicate, lacy outer covering of the nutmeg seed. Mace offers a more refined, floral version of nutmeg flavor.",
+    "image": "/products/mace-packed.png"
+  },
+  {
+    "id": "ginger",
+    "name": "Ginger",
+    "category": "Whole Spices",
+    "priceINR": "450",
+    "priceUSD": "5.99",
+    "unit": "kg",
+    "description": "Sun-dried premium ginger rhizomes with a sharp, spicy, and slightly sweet bite. A staple for both cooking and wellness.",
+    "image": "/products/ginger-packed.png"
+  },
+  {
+    "id": "turmeric",
+    "name": "Turmeric",
+    "category": "Whole Spices",
+    "priceINR": "350",
+    "priceUSD": "4.99",
+    "unit": "kg",
+    "description": "Vibrant golden turmeric with high curcumin content. Known for its earthy flavor and powerful health-promoting properties.",
+    "image": "/products/turmeric-packed.png"
+  },
+  {
+    "id": "garlic",
+    "name": "Garlic",
+    "category": "Whole Spices",
+    "priceINR": "250",
+    "priceUSD": "3.49",
+    "unit": "kg",
+    "description": "High-quality garlic bulbs known for their pungent aroma and intense flavor. Essential for building deep flavor profiles.",
+    "image": "/products/garlic-packed.png"
+  },
+  {
+    "id": "cumin",
+    "name": "Cumin",
+    "category": "Whole Spices",
+    "priceINR": "550",
+    "priceUSD": "6.99",
+    "unit": "kg",
+    "description": "Aromatic cumin seeds with a warm, earthy flavor. An essential ingredient in spice blends across global cuisines.",
+    "image": "/products/cumin-packed.png"
+  },
+  {
+    "id": "mustard-seeds",
+    "name": "Mustard Seeds",
+    "category": "Whole Spices",
+    "priceINR": "180",
+    "priceUSD": "2.49",
+    "unit": "kg",
+    "description": "Tiny, powerful black mustard seeds that add a nutty, sharp flavor when toasted or tempered in oil.",
+    "image": "/products/mustard-seeds-packed.png"
+  },
+  {
+    "id": "fenugreek",
+    "name": "Fenugreek",
+    "category": "Whole Spices",
+    "priceINR": "220",
+    "priceUSD": "2.99",
+    "unit": "kg",
+    "description": "Small, angular fenugreek seeds with a unique bitter-sweet flavor, widely used in spice blends and traditional medicine.",
+    "image": "/products/fenugreek-packed.png"
+  },
+  {
+    "id": "star-anise",
+    "name": "Star Anise",
+    "category": "Whole Spices",
+    "priceINR": "1150",
+    "priceUSD": "13.99",
+    "unit": "kg",
+    "description": "Beautiful star-shaped pods with a distinct licorice flavor. Adds a sophisticated depth to broths, stews, and spice mixes.",
+    "image": "/products/star-anise-packed.png"
+  },
+  {
+    "id": "coriander-seeds",
+    "name": "Coriander Seeds",
+    "category": "Whole Spices",
+    "priceINR": "280",
+    "priceUSD": "3.49",
+    "unit": "kg",
+    "description": "Whole coriander seeds with a citrusy, floral, and slightly nutty aroma. Perfect for toasting and grinding fresh.",
+    "image": "/products/coriander-seeds-packed.png"
+  },
+  {
+    "id": "asafoetida",
+    "name": "Asafoetida",
+    "category": "Whole Spices",
+    "priceINR": "3500",
+    "priceUSD": "44.99",
+    "unit": "kg",
+    "description": "Pure asafoetida (Hing) with an intense, savory aroma. A key ingredient for enhancing the umami profile of vegetarian dishes.",
+    "image": "/products/asafoetida-packed.png"
+  },
+  {
+    "id": "tamarind",
+    "name": "Tamarind",
+    "category": "Whole Spices",
+    "priceINR": "200",
+    "priceUSD": "2.49",
+    "unit": "kg",
+    "description": "Tangy and sweet tamarind pulp, perfect for adding a natural sourness to curries, chutneys, and sauces.",
+    "image": "/products/tamarind-packed.png"
+  },
+  {
+    "id": "curry-leaves",
+    "name": "Curry Leaves",
+    "category": "Whole Spices",
+    "priceINR": "150",
+    "priceUSD": "1.99",
+    "unit": "kg",
+    "description": "Freshly harvested curry leaves with a unique, nutty, and herbal aroma. Indispensable for authentic tempering.",
+    "image": "/products/curry-leaves-packed.png"
+  },
+  {
+    "id": "chicken-pickle",
+    "name": "Chicken Pickle",
+    "category": "Pickles",
+    "priceINR": "350",
+    "priceUSD": "6.99",
+    "unit": "jar",
+    "description": "A succulent and spicy traditional chicken pickle made with premium boneless chicken and a blend of aromatic Kerala spices.",
+    "image": "/products/chicken-pickle-packed.png"
+  },
+  {
+    "id": "beef-pickle",
+    "name": "Beef Pickle",
+    "category": "Pickles",
+    "priceINR": "380",
+    "priceUSD": "7.49",
+    "unit": "jar",
+    "description": "Slow-cooked beef pieces pickled in a rich, spicy, and tangy gravy. An authentic delicacy from the heart of Kerala.",
+    "image": "/products/beef-pickle-packed.png"
+  },
+  {
+    "id": "fish-pickle",
+    "name": "Fish Pickle",
+    "category": "Pickles",
+    "priceINR": "400",
+    "priceUSD": "7.99",
+    "unit": "jar",
+    "description": "Premium King Fish pieces pickled with a masterfully balanced blend of ginger, garlic, and fiery red chillies.",
+    "image": "/products/fish-pickle-packed.png"
+  },
+  {
+    "id": "lemon-pickle",
+    "name": "Lemon Pickle",
+    "category": "Pickles",
+    "priceINR": "160",
+    "priceUSD": "2.49",
+    "unit": "jar",
+    "description": "Cured lemon wedges in a traditional tangy and spicy gravy. This pickle offers a sharp, zesty kick that elevates any vegetarian meal.",
+    "image": "/products/lemon-pickle-packed.png"
+  },
+  {
+    "id": "mango-pickle",
+    "name": "Mango Pickle",
+    "category": "Pickles",
+    "priceINR": "180",
+    "priceUSD": "2.99",
+    "unit": "jar",
+    "description": "Traditional home-style mango pickle made with premium raw mangoes and hand-ground spices. A perfect balance of tang and heat.",
+    "image": "/products/mango-pickle-packed.png"
+  }
+]
