@@ -20,7 +20,7 @@ export default function MessageDetail() {
           <div className="card empty">Message not found.</div>
         ) : (
           <div className="msg-page single">
-            <section className="card msg-card">
+            <section className="card msg-detail">
               <div className="msg-top">
                 <h2 className="msg-subject">{m.subject}</h2>
                 <div className="msg-status">
