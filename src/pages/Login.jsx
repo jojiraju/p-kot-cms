@@ -39,14 +39,14 @@ export default function Login() {
 
         <label className={`field icon-field ${err('username') ? 'invalid' : ''}`}>
           <span>Username<i className="req" aria-hidden="true"> *</i></span>
-          <div><User size={16} /><input autoComplete="username" autoFocus {...formik.getFieldProps('username')} /></div>
+          <div><User size={16} /><input placeholder="Enter your username" autoComplete="username" autoFocus {...formik.getFieldProps('username')} /></div>
           {err('username') && <small className="field-err">{formik.errors.username}</small>}
         </label>
         <label className={`field icon-field ${err('password') ? 'invalid' : ''}`}>
           <span>Password<i className="req" aria-hidden="true"> *</i></span>
           <div>
             <Lock size={16} />
-            <input type={show ? 'text' : 'password'} autoComplete="current-password" {...formik.getFieldProps('password')} />
+            <input type={show ? 'text' : 'password'} placeholder="Enter your password" autoComplete="current-password" {...formik.getFieldProps('password')} />
             <button type="button" className="eye" onClick={() => setShow(!show)} aria-label="Toggle password">{show ? <EyeOff size={16} /> : <Eye size={16} />}</button>
           </div>
           {err('password') && <small className="field-err">{formik.errors.password}</small>}
