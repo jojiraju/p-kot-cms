@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ShoppingBag, IndianRupee, MessageSquare, Clock, Plus, ArrowRight, TrendingUp, TrendingDown, Inbox } from 'lucide-react';
-import { useCollection, fmtMoney, fmtDate, toDate, ORDER_STATUSES, messageStatus } from '../lib/api';
+import { useCollection, fmtMoney, fmtDate, toDate, ORDER_STATUSES, messageStatus, stockState, trackedSizes, LOW_STOCK } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { StatusBadge, DataState } from '../components/ui';
 
@@ -47,6 +47,9 @@ export default function Dashboard() {
   const { user } = useAuth();
   const o = useCollection('orders');
   const m = useCollection('messages');
+  const lowStock = useCollection('products', { sortByCreated: false }).items
+    .filter((p) => ['low', 'out'].includes(stockState(p)) && (trackedSizes(p).length > 0 || p.inStock === false));
+  const lowSizes = (p) => trackedSizes(p).filter((z) => z.stock <= LOW_STOCK).map((z) => `${z.label}: ${z.stock} left`).join(' · ');
   const orders = o.items;
   const messages = m.items;
 
@@ -148,6 +151,19 @@ export default function Dashboard() {
           </div>
         </section>
       </div>
+
+      {lowStock.length > 0 && (
+        <section className="card" style={{ marginBottom: 16 }}>
+          <div className="card-head"><h3>Needs restocking</h3><Link to="/products">View products</Link></div>
+          {lowStock.slice(0, 6).map((p) => (
+            <Link key={p.id} to={`/products/${p.id}`} className="row-item">
+              <div className="row-avatar">{initial(p.name)}</div>
+              <div className="row-main"><strong>{p.name}</strong><small>{lowSizes(p) || p.category}</small></div>
+              <div className="right"><span className={`badge ${stockState(p) === 'out' ? 'badge-cancelled' : 'badge-new'}`}>{stockState(p) === 'out' ? 'Out of stock' : 'Low stock'}</span></div>
+            </Link>
+          ))}
+        </section>
+      )}
 
       <div className="grid-2">
         <section className="card">

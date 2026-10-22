@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Download, Trash2, MessageCircle } from 'lucide-react';
-import { useCollection, updateItem, removeItem, fmtDate, fmtMoney, downloadCsv, ORDER_STATUSES } from '../lib/api';
+import { useCollection, updateItem, removeItem, setOrderStatus, fmtDate, fmtMoney, downloadCsv, ORDER_STATUSES } from '../lib/api';
 import { PageHead, SearchBox, Chips, Drawer, StatusBadge, DataState, Empty, Field, ConfirmModal } from '../components/ui';
 import { notify } from '../lib/notify';
 
@@ -34,7 +34,10 @@ export default function Orders() {
     })));
   const remove = async () => {
     setConfirmDel(false);
-    if (await notify(removeItem('orders', selected.id), 'Order deleted')) setSelectedId(null);
+    const { id, stockDeducted } = selected;
+    // Put any held stock back on the shelf before the order disappears.
+    const run = async () => { if (stockDeducted) await setOrderStatus(id, 'cancelled'); await removeItem('orders', id); };
+    if (await notify(run(), 'Order deleted')) setSelectedId(null);
   };
 
   return (
@@ -83,7 +86,7 @@ export default function Orders() {
               <dt>Address</dt><dd>{selected.address}, {selected.city} - {selected.pincode}</dd>
             </dl>
             <Field label="Status">
-              <select value={selected.status} onChange={(e) => notify(updateItem('orders', selected.id, { status: e.target.value }), `Order marked ${e.target.value}`)}>
+              <select value={selected.status} onChange={(e) => notify(setOrderStatus(selected.id, e.target.value), `Order marked ${e.target.value}`)}>
                 {ORDER_STATUSES.map((s) => <option key={s}>{s}</option>)}
               </select>
             </Field>

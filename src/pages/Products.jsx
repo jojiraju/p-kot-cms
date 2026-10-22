@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, DownloadCloud, Images, Pencil, Trash2 } from 'lucide-react';
-import { useCollection, seedProducts, removeItem, errMessage } from '../lib/api';
+import { useCollection, seedProducts, removeItem, errMessage, stockState, trackedSizes } from '../lib/api';
 import { PageHead, SearchBox, Chips, DataState, Empty, ConfirmModal } from '../components/ui';
 import toast from 'react-hot-toast';
+import { isHtml, safeHtml } from '../lib/richText';
 import seed from '../seed/products.json';
 
 const SITE = (import.meta.env.VITE_SITE_URL || '').replace(/\/$/, '');
@@ -70,13 +71,18 @@ export default function Products() {
                 <Link to={`/products/${p.id}`} className="pcard-link">
                   <div className="pcard-img">
                     {p.image ? <img src={img(p.image)} alt={p.name} loading="lazy" /> : <span className="pcard-ph">🌶️</span>}
-                    <span className={`pcard-stock ${p.inStock === false ? 'out' : ''}`}>{p.inStock === false ? 'Out of stock' : 'In stock'}</span>
+                    <span className={`pcard-stock ${stockState(p)}`}>
+                      {{ out: 'Out of stock', low: 'Low stock', in: 'In stock' }[stockState(p)]}
+                      {stockState(p) !== 'out' && trackedSizes(p).length > 0 && ` · ${trackedSizes(p).reduce((n, z) => n + z.stock, 0)} packs`}
+                    </span>
                     {p.images?.length > 0 && <span className="pcard-count"><Images size={12} /> {p.images.length + 1}</span>}
                   </div>
                   <div className="pcard-body">
                     <span className="pcard-cat">{p.category}</span>
                     <h3>{p.name}</h3>
-                    {p.description && <p>{p.description}</p>}
+                    {p.description && (isHtml(p.description)
+                      ? <div className="pcard-desc" dangerouslySetInnerHTML={{ __html: safeHtml(p.description) }} />
+                      : <div className="pcard-desc">{p.description}</div>)}
                   </div>
                 </Link>
                 <div className="pcard-foot">
