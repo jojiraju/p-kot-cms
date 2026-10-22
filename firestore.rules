@@ -17,9 +17,14 @@ service cloud.firestore {
 
     // Contact-us form submissions.
     match /messages/{id} {
-      allow create: if request.resource.data.status == 'unread'
+      allow create: if request.resource.data.status in ['pending', 'unread']
         && request.resource.data.createdAt == request.time
-        && request.resource.data.keys().hasAll(['name', 'email', 'subject', 'message'])
+        && request.resource.data.keys().hasAll(['name', 'email', 'phone', 'subject', 'message'])
+        && request.resource.data.keys().hasOnly(['name', 'email', 'phone', 'subject', 'message', 'status', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() < 200
+        && request.resource.data.email is string && request.resource.data.email.size() < 200
+        && request.resource.data.phone is string && request.resource.data.phone.size() >= 6 && request.resource.data.phone.size() <= 20
+        && request.resource.data.subject is string && request.resource.data.subject.size() < 300
         && request.resource.data.message is string && request.resource.data.message.size() < 5000;
       allow read, update, delete: if isAdmin();
     }
@@ -27,6 +32,21 @@ service cloud.firestore {
     match /products/{id} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /quantities/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Browser push tokens saved by the CMS; the Cloud Function reads them with the Admin SDK.
+    match /adminTokens/{token} {
+      allow read, create, update, delete: if isAdmin();
     }
 
     // Admin marker docs are created with scripts/create-admin.mjs (Admin SDK).

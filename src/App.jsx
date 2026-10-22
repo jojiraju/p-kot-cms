@@ -6,8 +6,14 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
 import Messages from './pages/Messages';
+import MessageDetail from './pages/MessageDetail';
 import Customers from './pages/Customers';
 import Products from './pages/Products';
+import ProductForm from './pages/ProductForm';
+import Categories from './pages/Categories';
+import CategoryForm from './pages/CategoryForm';
+import Quantities from './pages/Quantities';
+import QuantityForm from './pages/QuantityForm';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -34,8 +40,17 @@ export default function App() {
         <Route index element={<Dashboard />} />
         <Route path="orders" element={<Orders />} />
         <Route path="messages" element={<Messages />} />
+        <Route path="messages/:id" element={<MessageDetail />} />
         <Route path="customers" element={<Customers />} />
         <Route path="products" element={<Products />} />
+        <Route path="products/new" element={<ProductForm />} />
+        <Route path="products/:id" element={<ProductForm />} />
+        <Route path="settings/categories" element={<Categories />} />
+        <Route path="settings/categories/new" element={<CategoryForm />} />
+        <Route path="settings/categories/:id" element={<CategoryForm />} />
+        <Route path="settings/quantities" element={<Quantities />} />
+        <Route path="settings/quantities/new" element={<QuantityForm />} />
+        <Route path="settings/quantities/:id" element={<QuantityForm />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

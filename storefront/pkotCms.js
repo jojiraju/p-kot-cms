@@ -30,4 +30,4 @@ export const saveOrder = ({ product, weight, quantity, currency, total, name, ph
 
 /** Call from the contact form's handleSubmit: await saveMessage(formState); */
 export const saveMessage = ({ name, email, subject, message }) =>
-  addDoc(collection(db, 'messages'), { name, email, subject, message, status: 'unread', createdAt: serverTimestamp() });
+  addDoc(collection(db, 'messages'), { name, email, subject, message, status: 'pending', createdAt: serverTimestamp() });

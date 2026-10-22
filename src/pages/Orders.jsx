@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Download, Trash2, MessageCircle } from 'lucide-react';
 import { useCollection, updateItem, removeItem, fmtDate, fmtMoney, downloadCsv, ORDER_STATUSES } from '../lib/api';
-import { PageHead, SearchBox, Chips, Drawer, StatusBadge, DataState, Empty, Field } from '../components/ui';
+import { PageHead, SearchBox, Chips, Drawer, StatusBadge, DataState, Empty, Field, ConfirmModal } from '../components/ui';
+import { notify } from '../lib/notify';
 
 export default function Orders() {
   const { items, loading, error } = useCollection('orders');
@@ -9,6 +10,7 @@ export default function Orders() {
   const [q, setQ] = useState('');
   const [selectedId, setSelectedId] = useState(null);
   const [notes, setNotes] = useState('');
+  const [confirmDel, setConfirmDel] = useState(false);
 
   const counts = useMemo(() => {
     const c = { all: items.length };
@@ -31,9 +33,8 @@ export default function Orders() {
       address: o.address, city: o.city, pincode: o.pincode, notes: o.notes,
     })));
   const remove = async () => {
-    if (!confirm('Delete this order permanently?')) return;
-    await removeItem('orders', selected.id);
-    setSelectedId(null);
+    setConfirmDel(false);
+    if (await notify(removeItem('orders', selected.id), 'Order deleted')) setSelectedId(null);
   };
 
   return (
@@ -82,7 +83,7 @@ export default function Orders() {
               <dt>Address</dt><dd>{selected.address}, {selected.city} - {selected.pincode}</dd>
             </dl>
             <Field label="Status">
-              <select value={selected.status} onChange={(e) => updateItem('orders', selected.id, { status: e.target.value })}>
+              <select value={selected.status} onChange={(e) => notify(updateItem('orders', selected.id, { status: e.target.value }), `Order marked ${e.target.value}`)}>
                 {ORDER_STATUSES.map((s) => <option key={s}>{s}</option>)}
               </select>
             </Field>
@@ -90,15 +91,24 @@ export default function Orders() {
               <textarea rows="4" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Payment received, courier tracking…" />
             </Field>
             <div className="drawer-actions">
-              <button className="btn primary" onClick={() => updateItem('orders', selected.id, { notes })}>Save notes</button>
+              <button className="btn primary" onClick={() => notify(updateItem('orders', selected.id, { notes }), 'Notes saved')}>Save notes</button>
               <a className="btn" target="_blank" rel="noreferrer" href={`https://wa.me/${String(selected.phone).replace(/\D/g, '').replace(/^(\d{10})$/, '91$1')}`}>
                 <MessageCircle size={16} /> WhatsApp
               </a>
-              <button className="btn danger" onClick={remove}><Trash2 size={16} /></button>
+              <button className="btn danger" onClick={() => setConfirmDel(true)}><Trash2 size={16} /></button>
             </div>
           </>
         )}
       </Drawer>
+
+      <ConfirmModal
+        open={confirmDel}
+        title="Delete order?"
+        message="This order will be permanently removed."
+        confirmLabel="Delete"
+        onConfirm={remove}
+        onCancel={() => setConfirmDel(false)}
+      />
     </>
   );
 }

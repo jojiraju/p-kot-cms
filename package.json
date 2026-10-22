@@ -10,11 +10,22 @@
     "create-admin": "node scripts/create-admin.mjs"
   },
   "dependencies": {
+    "@tiptap/extension-placeholder": "^3.32.0",
+    "@tiptap/pm": "^3.32.0",
+    "@tiptap/react": "^3.32.0",
+    "@tiptap/starter-kit": "^3.32.0",
     "firebase": "^13.1.0",
+    "formik": "^2.4.9",
     "lucide-react": "^1.61.0",
     "react": "^19.3.1",
+    "react-data-table-component": "^8.12.0",
     "react-dom": "^19.3.1",
-    "react-router-dom": "^7.18.4"
+    "react-hot-toast": "^2.6.1",
+    "react-router-dom": "^7.18.4",
+    "react-select": "^5.10.2",
+    "react-tooltip": "^6.0.9",
+    "styled-components": "^6.6.0",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.2",

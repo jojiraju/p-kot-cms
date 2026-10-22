@@ -24,6 +24,57 @@ export const removeItem = (col, id) => deleteDoc(doc(db, col, id));
 export const saveProduct = (id, data) =>
   setDoc(doc(db, 'products', id), { ...data, updatedAt: serverTimestamp() }, { merge: true });
 
+export const slugify = (t) => t.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+export const addCategories = (names) => {
+  const batch = writeBatch(db);
+  names.forEach((name) => batch.set(doc(db, 'categories', slugify(name)), { name, createdAt: serverTimestamp() }, { merge: true }));
+  return batch.commit();
+};
+
+/** Rename a category and re-point every product that uses it. */
+export async function renameCategory(oldId, oldName, newName, products, description = '') {
+  const batch = writeBatch(db);
+  const newId = slugify(newName);
+  if (newId !== oldId) batch.delete(doc(db, 'categories', oldId));
+  batch.set(doc(db, 'categories', newId), { name: newName, description, updatedAt: serverTimestamp() }, { merge: true });
+  products.filter((p) => p.category === oldName).forEach((p) => batch.update(doc(db, 'products', p.id), { category: newName }));
+  await batch.commit();
+}
+
+export const saveCategory = (name, description) =>
+  setDoc(doc(db, 'categories', slugify(name)), { name, description, createdAt: serverTimestamp() }, { merge: true });
+
+/** Quantity options. Product prices are per kg, so `value` is the share of a kg (250 g -> 0.25). */
+export const quantityValue = (amount, unit) => Math.round((unit === 'g' ? Number(amount) / 1000 : Number(amount)) * 10000) / 10000;
+export const quantityLabel = (amount, unit) => `${Number(amount)}${unit}`;
+export const DEFAULT_QUANTITIES = [[100, 'g'], [250, 'g'], [500, 'g'], [1, 'kg'], [5, 'kg']];
+
+export const saveQuantity = (amount, unit) => {
+  const label = quantityLabel(amount, unit);
+  return setDoc(doc(db, 'quantities', slugify(label)), { label, amount: Number(amount), unit, value: quantityValue(amount, unit), createdAt: serverTimestamp() }, { merge: true });
+};
+/** Change an existing option; the label is the document id, so a changed size moves to a new document. */
+export const replaceQuantity = async (oldId, amount, unit) => {
+  const label = quantityLabel(amount, unit);
+  const newId = slugify(label);
+  const batch = writeBatch(db);
+  if (newId !== oldId) batch.delete(doc(db, 'quantities', oldId));
+  batch.set(doc(db, 'quantities', newId), { label, amount: Number(amount), unit, value: quantityValue(amount, unit), createdAt: serverTimestamp() }, { merge: true });
+  await batch.commit();
+};
+export const seedQuantities = () => {
+  const batch = writeBatch(db);
+  DEFAULT_QUANTITIES.forEach(([amount, unit]) => {
+    const label = quantityLabel(amount, unit);
+    batch.set(doc(db, 'quantities', slugify(label)), { label, amount, unit, value: quantityValue(amount, unit), createdAt: serverTimestamp() }, { merge: true });
+  });
+  return batch.commit();
+};
+
+export const errMessage = (e) =>
+  e?.code === 'permission-denied' ? 'Permission denied: publish the latest firestore.rules in the Firebase console, and make sure you are logged in as an admin.' : e?.message || 'Something went wrong.';
+
 export async function seedProducts(products) {
   const batch = writeBatch(db);
   products.forEach((p) =>
@@ -33,7 +84,9 @@ export async function seedProducts(products) {
 }
 
 export const ORDER_STATUSES = ['new', 'confirmed', 'shipped', 'delivered', 'cancelled'];
-export const MESSAGE_STATUSES = ['unread', 'read', 'replied'];
+export const MESSAGE_STATUSES = ['pending', 'resolved'];
+// Older messages were stored as unread/read/replied; treat replied as resolved and the rest as pending.
+export const messageStatus = (m) => (m?.status === 'resolved' || m?.status === 'replied' ? 'resolved' : 'pending');
 
 export const toDate = (ts) => (ts?.toDate ? ts.toDate() : ts ? new Date(ts) : null);
 export const fmtDate = (ts) =>

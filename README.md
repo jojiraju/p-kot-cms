@@ -27,10 +27,19 @@ The storefront currently has no backend (orders go to WhatsApp, the contact form
 | Collection | Fields |
 |---|---|
 | `orders` | productId, productName, weight, quantity, currency, total, name, phone, address, city, pincode, status (`new→confirmed→shipped→delivered / cancelled`), notes, createdAt |
-| `messages` | name, email, subject, message, status (`unread/read/replied`), createdAt |
+| `messages` | name, email, subject, message, status (`pending/resolved`), createdAt |
 | `products` | id, name, category, priceINR, priceUSD, unit, description, image, inStock |
 | `admins` | username — one doc per admin uid (access gate) |
 
 ## Features
 
 Live-updating dashboard (revenue, 7-day chart, status breakdown) · order drawer with status, notes, WhatsApp link · CSV export · message inbox with reply-by-email · customers derived from orders · product CRUD · responsive/mobile layout.
+
+## Notifications
+
+- **Live alerts (work now, no backend):** while the CMS is open, a new order or message shows a toast, plays a chime and, if the tab is in the background, a browser notification. Click the bell in the top bar once to allow notifications.
+- **Push when the CMS is closed (needs Blaze plan):**
+  1. Firebase console → Project settings → Cloud Messaging → Web Push certificates → *Generate key pair*, then put the key in `.env` as `VITE_FIREBASE_VAPID_KEY` and restart `npm run dev`.
+  2. Upgrade the project to the Blaze plan (Cloud Functions requirement).
+  3. `cd functions && npm install`, then `firebase deploy --only functions,firestore:rules`.
+  4. Click the bell in the CMS on each device that should receive pushes.
