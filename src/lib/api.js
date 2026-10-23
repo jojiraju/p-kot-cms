@@ -72,6 +72,9 @@ export const seedQuantities = () => {
   return batch.commit();
 };
 
+/** Products are shown on the website unless switched to inactive in the CMS. */
+export const isActive = (p) => p?.active !== false;
+
 /** Percentage off (0-100) set on a product; 0 means no discount. Prices are stored undiscounted. */
 export const discountPercent = (p) => {
   const n = Number(p?.discountPercent);

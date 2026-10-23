@@ -638,3 +638,7 @@ button.top-chip { padding: 0; }
 .od-paid.yes { background: rgba(123, 192, 67, .16); color: #7bc043; }
 .btn.disabled { opacity: .5; pointer-events: none; }
 .pf.single { grid-template-columns: minmax(0, 1fr); }
+.pf-main-tag { position: absolute; left: 4px; bottom: 4px; padding: 1px 7px; border-radius: 99px; font-size: 10px; font-weight: 700; background: var(--primary); color: #1a110d; pointer-events: none; }
+.pcard.inactive .pcard-img img { filter: grayscale(1); opacity: .4; }
+.pcard.inactive h3 { color: var(--muted); }
+.pcard-off { margin-left: 8px; padding: 2px 8px; border-radius: 99px; font-size: 10px; letter-spacing: .3px; text-transform: none; background: rgba(239, 90, 122, .14); color: var(--rose); font-weight: 600; }

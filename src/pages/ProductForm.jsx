@@ -11,7 +11,7 @@ import RichTextEditor, { featuresFromHtml, featuresToHtml } from '../components/
 const SITE = (import.meta.env.VITE_SITE_URL || '').replace(/\/$/, '');
 const img = (src) => (src?.startsWith('/') ? SITE + src : src);
 const UNITS = ['g', 'kg'];
-const blank = { name: '', category: '', priceINR: '', priceUSD: '', discountPercent: '', unit: 'kg', description: '', details: '', features: '', usage: '', benefits: '', inStock: true, sellBy: 'weight', weightStock: {}, packs: [], gallery: [] };
+const blank = { name: '', category: '', priceINR: '', priceUSD: '', discountPercent: '', active: true, unit: 'kg', description: '', details: '', features: '', usage: '', benefits: '', inStock: true, sellBy: 'weight', weightStock: {}, packs: [], gallery: [] };
 const blankPack = { label: '', priceINR: '', priceUSD: '', stock: '' };
 const countStr = (n) => (typeof n === 'number' ? String(n) : '');
 const countNum = (v) => (String(v ?? '').trim() === '' ? null : Number(v));
@@ -182,6 +182,8 @@ function ProductEditor({ id, existing }) {
   );
 
   const gallery = values.gallery;
+  const [view, setView] = useState(0);
+  const shown = Math.max(0, Math.min(view, gallery.length - 1));
   const setGallery = (g) => formik.setFieldValue('gallery', g);
   const addFiles = async (e) => {
     const files = [...e.target.files];
@@ -196,12 +198,13 @@ function ProductEditor({ id, existing }) {
       setUploading(false);
     }
   };
-  const makeMain = (i) => setGallery([gallery[i], ...gallery.filter((_, j) => j !== i)]);
+  // Clicking a thumbnail only previews it; the main image is whichever is first (drag to reorder).
   const moveImg = (from, to) => {
     if (from === null || to === null || from === to) return;
     const next = [...gallery];
     next.splice(to, 0, next.splice(from, 1)[0]);
     setGallery(next);
+    setView(to); // keep previewing the image that was just moved
   };
   const removeImg = (i) => setGallery(gallery.filter((_, j) => j !== i));
 
@@ -345,7 +348,7 @@ function ProductEditor({ id, existing }) {
           <section className="card">
             <h3>Images</h3>
             <div className="pf-hero">
-              {gallery[0] ? <img src={img(gallery[0])} alt="Main" /> : (
+              {gallery[shown] ? <img src={img(gallery[shown])} alt={shown === 0 ? 'Main' : 'Preview'} /> : (
                 <button type="button" className="pf-empty" onClick={() => fileRef.current.click()}>
                   <ImagePlus size={30} />
                   <span>Upload main image</span>
@@ -356,23 +359,32 @@ function ProductEditor({ id, existing }) {
               {gallery.map((src, i) => (
                 <div
                   key={src.slice(-40) + i}
-                  className={`pf-thumb ${i === 0 ? 'is-main' : ''} ${drag.from === i ? 'dragging' : ''} ${drag.over === i && drag.from !== i ? 'drag-over' : ''}`}
-                  title={i === 0 ? 'Main image. Drag to reorder' : 'Click to make main, drag to reorder'}
+                  className={`pf-thumb ${i === shown ? 'is-main' : ''} ${drag.from === i ? 'dragging' : ''} ${drag.over === i && drag.from !== i ? 'drag-over' : ''}`}
+                  title={i === 0 ? 'Main image. Click to preview, drag to reorder' : 'Click to preview, drag to reorder'}
                   draggable
                   onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i)); setDrag({ from: i, over: null }); }}
                   onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (drag.over !== i) setDrag((d) => ({ ...d, over: i })); }}
                   onDrop={(e) => { e.preventDefault(); moveImg(drag.from, i); setDrag({ from: null, over: null }); }}
                   onDragEnd={() => setDrag({ from: null, over: null })}
                 >
-                  <img src={img(src)} alt="" draggable={false} onClick={() => makeMain(i)} />
+                  <img src={img(src)} alt="" draggable={false} onClick={() => setView(i)} />
+                  {i === 0 && <span className="pf-main-tag">Main</span>}
                   <button type="button" className="pf-x" onClick={() => removeImg(i)} aria-label="Remove image"><X size={12} /></button>
                 </div>
               ))}
               <button type="button" className="pf-thumb pf-add" onClick={() => fileRef.current.click()} aria-label="Add image"><Plus size={20} /></button>
             </div>
             <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={addFiles} />
-            <p className="muted pf-hint">The first image is the main one. Drag thumbnails to reorder them, or click one to make it main.</p>
+            <p className="muted pf-hint">The first image is the main one. Click a thumbnail to preview it. To change the main image, drag another one to the first place.</p>
             {(errors.gallery || imgErr) && <small className="field-err">{errors.gallery || imgErr}</small>}
+          </section>
+
+          <section className="card">
+            <h3>Visibility</h3>
+            <div className="avail">
+              <Toggle checked={values.active} onChange={(v) => formik.setFieldValue('active', v)} onLabel="Active" offLabel="Inactive" />
+              <p className="muted">{values.active ? 'Shown on the website.' : 'Hidden from the website: it will not appear in the shop, and its page and checkout will not open. You can still edit it here.'}</p>
+            </div>
           </section>
 
           <section className="card">
