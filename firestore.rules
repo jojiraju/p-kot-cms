@@ -6,13 +6,43 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    // Storefront can only CREATE orders; the CMS reads/updates them.
+    // Signed-in customers can CREATE their own orders and read them back (that is how My Orders works);
+    // the CMS reads/updates everything.
     match /orders/{id} {
-      allow create: if request.resource.data.status == 'new'
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'new'
         && request.resource.data.createdAt == request.time
         && request.resource.data.keys().hasAll(['name', 'phone', 'address', 'productName', 'quantity'])
         && request.resource.data.name is string && request.resource.data.name.size() < 200;
-      allow read, update, delete: if isAdmin();
+      allow read: if isAdmin() || (request.auth != null && resource.data.uid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // One profile per customer account, written by the customer on sign-in and listed in the CMS under Customers.
+    match /users/{uid} {
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'email', 'phone', 'provider', 'createdAt', 'lastLoginAt'])
+        && request.resource.data.uid == uid;
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow delete: if isAdmin();
+    }
+
+    // What the website's payment page may show for one order: amount and item only, never the
+    // customer's details. Created by the storefront together with the order, then kept in step by the CMS.
+    match /payments/{id} {
+      allow get: if true;
+      allow create: if existsAfter(/databases/$(database)/documents/orders/$(id))
+        && request.resource.data.keys().hasOnly(['total', 'currency', 'productName', 'weight', 'quantity', 'status', 'paid'])
+        && request.resource.data.status == 'new'
+        && request.resource.data.paid == false;
+      allow write: if isAdmin();
+    }
+
+    // Payment details (UPI, bank) shown to customers on the website.
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Contact-us form submissions.

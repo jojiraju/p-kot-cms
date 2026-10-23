@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, DownloadCloud, Images, Pencil, Trash2 } from 'lucide-react';
-import { useCollection, seedProducts, removeItem, errMessage, stockState, trackedSizes } from '../lib/api';
+import { useCollection, seedProducts, removeItem, errMessage, stockState, trackedSizes, discountPercent, discounted } from '../lib/api';
 import { PageHead, SearchBox, Chips, DataState, Empty, ConfirmModal } from '../components/ui';
 import toast from 'react-hot-toast';
 import { isHtml, safeHtml } from '../lib/richText';
@@ -87,8 +87,17 @@ export default function Products() {
                 </Link>
                 <div className="pcard-foot">
                   <div>
-                    <b>₹{p.priceINR}</b>
-                    <small>${p.priceUSD} / {p.unit}</small>
+                    {discountPercent(p) > 0 ? (
+                      <>
+                        <b>₹{discounted(p.priceINR, p)} <s className="muted">₹{p.priceINR}</s> <span className="badge">{discountPercent(p)}% off</span></b>
+                        <small>${discounted(p.priceUSD, p)} / {p.unit}</small>
+                      </>
+                    ) : (
+                      <>
+                        <b>₹{p.priceINR}</b>
+                        <small>${p.priceUSD} / {p.unit}</small>
+                      </>
+                    )}
                   </div>
                   <div className="pcard-actions">
                     <Link to={`/products/${p.id}`} className="pcard-btn" title="Edit"><Pencil size={15} /></Link>

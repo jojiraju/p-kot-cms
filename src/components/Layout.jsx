@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Package, LogOut, Menu, Settings, ChevronDown, ChevronRight, CalendarDays, Scale, Tags } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Package, LogOut, Menu, Settings, ChevronDown, ChevronRight, CalendarDays, Scale, Tags, Wallet } from 'lucide-react';
 import { Tooltip } from 'react-tooltip';
 import { useAuth } from '../lib/auth';
 import { useCollection, messageStatus } from '../lib/api';
@@ -9,14 +9,14 @@ import NotifyButton from './NotifyButton';
 import { ConfirmModal } from './ui';
 
 const SECTIONS = {
-  '': 'Dashboard', orders: 'Orders', messages: 'Messages', customers: 'Customers', products: 'Products', settings: 'Settings', categories: 'Categories', quantities: 'Weights',
+  '': 'Dashboard', orders: 'Orders', messages: 'Messages', customers: 'Customers', products: 'Products', settings: 'Settings', payment: 'Payment', categories: 'Categories', quantities: 'Weights',
 };
 const crumbsFor = (pathname) => {
   const [a, b, c] = pathname.split('/').filter(Boolean);
   const out = [SECTIONS[a ?? ''] || 'Dashboard'];
   if (a === 'settings') out.push(SECTIONS[b] || 'Settings');
   const detail = a === 'settings' ? c : b;
-  if (detail) out.push(detail === 'new' ? 'Add' : a === 'messages' ? 'View' : 'Edit');
+  if (detail) out.push(detail === 'new' ? 'Add' : a === 'messages' || a === 'orders' || a === 'customers' ? 'View' : 'Edit');
   return out;
 };
 
@@ -85,6 +85,10 @@ export default function Layout() {
               <NavLink to="/settings/quantities" onClick={() => setOpen(false)} className="nav-link nav-sub" data-tooltip-id="side-tip" data-tooltip-content="Weights">
                 <Scale size={16} />
                 <span>Weights</span>
+              </NavLink>
+              <NavLink to="/settings/payment" onClick={() => setOpen(false)} className="nav-link nav-sub" data-tooltip-id="side-tip" data-tooltip-content="Payment">
+                <Wallet size={16} />
+                <span>Payment</span>
               </NavLink>
             </>
           )}

@@ -11,7 +11,7 @@ import RichTextEditor, { featuresFromHtml, featuresToHtml } from '../components/
 const SITE = (import.meta.env.VITE_SITE_URL || '').replace(/\/$/, '');
 const img = (src) => (src?.startsWith('/') ? SITE + src : src);
 const UNITS = ['g', 'kg'];
-const blank = { name: '', category: '', priceINR: '', priceUSD: '', unit: 'kg', description: '', details: '', features: '', usage: '', benefits: '', inStock: true, sellBy: 'weight', weightStock: {}, packs: [], gallery: [] };
+const blank = { name: '', category: '', priceINR: '', priceUSD: '', discountPercent: '', unit: 'kg', description: '', details: '', features: '', usage: '', benefits: '', inStock: true, sellBy: 'weight', weightStock: {}, packs: [], gallery: [] };
 const blankPack = { label: '', priceINR: '', priceUSD: '', stock: '' };
 const countStr = (n) => (typeof n === 'number' ? String(n) : '');
 const countNum = (v) => (String(v ?? '').trim() === '' ? null : Number(v));
@@ -52,6 +52,7 @@ const schema = Yup.object({
   // Per-kg pricing only applies to loose-weight products; fixed packs carry their own prices.
   priceINR: Yup.string().when('sellBy', { is: 'weight', then: () => price('Price (INR)') }),
   priceUSD: Yup.string().when('sellBy', { is: 'weight', then: () => price('Price (USD)') }),
+  discountPercent: Yup.string().trim().test('pct', 'Enter a percentage between 0 and 99', (v) => !v || (!Number.isNaN(Number(v)) && Number(v) >= 0 && Number(v) < 100)),
   unit: Yup.string().when('sellBy', { is: 'weight', then: (sch) => sch.trim().required('Unit is required') }),
   packs: Yup.array().when('sellBy', {
     is: 'pack',
@@ -89,6 +90,9 @@ function ProductEditor({ id, existing }) {
     .sort((a, b) => a.value - b.value);
   const [saveErr, setSaveErr] = useState('');
   const [imgErr, setImgErr] = useState('');
+  const [uploading, setUploading] = useState(false);
+  // Thumbnail being dragged and the one it is hovering over, for drag-to-reorder.
+  const [drag, setDrag] = useState({ from: null, over: null });
   const fileRef = useRef(null);
 
   const initialValues = useMemo(() => {
@@ -98,6 +102,7 @@ function ProductEditor({ id, existing }) {
       ...v,
       packs: (existing.packs || []).map((k) => ({ label: k.label, priceINR: String(k.priceINR ?? ''), priceUSD: String(k.priceUSD ?? ''), stock: typeof k.stock === 'number' ? String(k.stock) : '' })),
       weightStock: Object.fromEntries(Object.entries(existing.weightStock || {}).map(([k, n]) => [k, countStr(n)])),
+      discountPercent: existing.discountPercent ? String(existing.discountPercent) : '',
       features: featuresToHtml(existing.features),
       gallery: [existing.image, ...(existing.images || [])].filter(Boolean),
     };
@@ -124,6 +129,7 @@ function ProductEditor({ id, existing }) {
           ...(byPack ? { priceINR: cheapest('priceINR'), priceUSD: cheapest('priceUSD'), unit: 'pack' } : {}),
           packs,
           weightStock,
+          discountPercent: Number(values.discountPercent) || 0,
           // Replaces the old single kg pool.
           stockGrams: null,
           lowStockGrams: null,
@@ -181,13 +187,22 @@ function ProductEditor({ id, existing }) {
     const files = [...e.target.files];
     e.target.value = '';
     setImgErr('');
+    setUploading(true);
     try {
       setGallery([...gallery, ...(await Promise.all(files.map(fileToDataUrl)))]);
     } catch (e2) {
       setImgErr(e2.message);
+    } finally {
+      setUploading(false);
     }
   };
   const makeMain = (i) => setGallery([gallery[i], ...gallery.filter((_, j) => j !== i)]);
+  const moveImg = (from, to) => {
+    if (from === null || to === null || from === to) return;
+    const next = [...gallery];
+    next.splice(to, 0, next.splice(from, 1)[0]);
+    setGallery(next);
+  };
   const removeImg = (i) => setGallery(gallery.filter((_, j) => j !== i));
 
   return (
@@ -196,6 +211,12 @@ function ProductEditor({ id, existing }) {
         <Link to="/products" className="btn"><ArrowLeft size={16} /> Back to products</Link>
       </PageHead>
 
+      {uploading && (
+        <div className="page-busy" role="status" aria-live="polite">
+          <div className="spinner" />
+          <span>Uploading images…</span>
+        </div>
+      )}
       <form className="pf" onSubmit={formik.handleSubmit} noValidate>
         <div className="pf-main">
           <section className="card">
@@ -289,8 +310,23 @@ function ProductEditor({ id, existing }) {
           )}
 
           <section className="card">
+            <h3>Discount</h3>
+            <Field label="Discount (%)" error={err('discountPercent')}>
+              <input inputMode="decimal" placeholder="No discount" {...bind('discountPercent')} />
+            </Field>
+            <p className="muted pack-hint">
+              Percentage taken off every size of this product on the website. Leave blank for no discount.
+              {Number(values.discountPercent) > 0 && Number(values.discountPercent) < 100 && !byPack && values.priceINR !== '' && (
+                <> Per-kg price becomes ₹{Math.round(Number(values.priceINR) * (1 - Number(values.discountPercent) / 100))}.</>
+              )}
+            </p>
+          </section>
+
+          <section className="card">
             <h3>Product details</h3>
-            <Field label="Details"><input placeholder="Purity: 100% Pure. Heat Level: Medium." {...bind('details')} /></Field>
+            <Field as="div" label="Details">
+              <RichTextEditor value={values.details} onChange={(v) => formik.setFieldValue('details', v)} placeholder="Purity: 100% Pure. Heat Level: Medium." minHeight={110} />
+            </Field>
             <Field as="div" label="Features">
               <RichTextEditor value={values.features} onChange={(v) => formik.setFieldValue('features', v)} placeholder="Key features: use the bullet list for one point per line" minHeight={110} />
             </Field>
@@ -318,15 +354,24 @@ function ProductEditor({ id, existing }) {
             </div>
             <div className="pf-thumbs">
               {gallery.map((src, i) => (
-                <div key={i} className={`pf-thumb ${i === 0 ? 'is-main' : ''}`} title={i === 0 ? 'Main image' : 'Click to make main'}>
-                  <img src={img(src)} alt="" onClick={() => makeMain(i)} />
+                <div
+                  key={src.slice(-40) + i}
+                  className={`pf-thumb ${i === 0 ? 'is-main' : ''} ${drag.from === i ? 'dragging' : ''} ${drag.over === i && drag.from !== i ? 'drag-over' : ''}`}
+                  title={i === 0 ? 'Main image. Drag to reorder' : 'Click to make main, drag to reorder'}
+                  draggable
+                  onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i)); setDrag({ from: i, over: null }); }}
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (drag.over !== i) setDrag((d) => ({ ...d, over: i })); }}
+                  onDrop={(e) => { e.preventDefault(); moveImg(drag.from, i); setDrag({ from: null, over: null }); }}
+                  onDragEnd={() => setDrag({ from: null, over: null })}
+                >
+                  <img src={img(src)} alt="" draggable={false} onClick={() => makeMain(i)} />
                   <button type="button" className="pf-x" onClick={() => removeImg(i)} aria-label="Remove image"><X size={12} /></button>
                 </div>
               ))}
               <button type="button" className="pf-thumb pf-add" onClick={() => fileRef.current.click()} aria-label="Add image"><Plus size={20} /></button>
             </div>
             <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={addFiles} />
-            <p className="muted pf-hint">The first image is the main one. Click a thumbnail to make it main.</p>
+            <p className="muted pf-hint">The first image is the main one. Drag thumbnails to reorder them, or click one to make it main.</p>
             {(errors.gallery || imgErr) && <small className="field-err">{errors.gallery || imgErr}</small>}
           </section>
 
@@ -344,7 +389,7 @@ function ProductEditor({ id, existing }) {
           {saveErr && <span className="pf-err">{saveErr}</span>}
           <span className="grow" />
           <Link to="/products" className="btn">Cancel</Link>
-          <button type="submit" className="btn primary" disabled={formik.isSubmitting}>{formik.isSubmitting ? 'Saving…' : isNew ? 'Create product' : 'Save changes'}</button>
+          <button type="submit" className="btn primary" disabled={formik.isSubmitting || uploading}>{formik.isSubmitting ? 'Saving…' : isNew ? 'Create product' : 'Save changes'}</button>
         </div>
       </form>
     </>

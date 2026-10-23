@@ -72,6 +72,14 @@ export const seedQuantities = () => {
   return batch.commit();
 };
 
+/** Percentage off (0-100) set on a product; 0 means no discount. Prices are stored undiscounted. */
+export const discountPercent = (p) => {
+  const n = Number(p?.discountPercent);
+  return n > 0 && n < 100 ? n : 0;
+};
+/** Price after the product's discount, rounded to a whole number. */
+export const discounted = (price, p) => Math.round(Number(price) * (1 - discountPercent(p) / 100));
+
 export const errMessage = (e) =>
   e?.code === 'permission-denied' ? 'Permission denied: publish the latest firestore.rules in the Firebase console, and make sure you are logged in as an admin.' : e?.message || 'Something went wrong.';
 
@@ -106,6 +114,101 @@ export const stockState = (p) => {
   if (!anySizeLeft(all)) return 'out';
   return sizes.some((z) => z.stock <= LOW_STOCK) ? 'low' : 'in';
 };
+
+/**
+ * Prices for an order: { total, original, saved, percent, unit, unitWas }.
+ * Orders placed after discounts existed store their own `originalTotal` and `discountPercent`. Older ones
+ * don't, so the list price is rebuilt from the product and kept only if its discount reproduces the order total.
+ */
+export function orderPricing(order, product, weights = []) {
+  const total = Number(order.total) || 0;
+  const qty = Number(order.quantity) || 1;
+  let original = Number(order.originalTotal) || total;
+  let percent = Number(order.discountPercent) || 0;
+  if (!Number(order.originalTotal) && product && discountPercent(product)) {
+    const key = order.currency === 'INR' ? 'priceINR' : 'priceUSD';
+    const pack = product.sellBy === 'pack' ? (product.packs || []).find((k) => k.label === order.weight) : null;
+    const factor = weights.find((w) => w.label === order.weight)?.value;
+    const list = pack ? Number(pack[key]) : factor ? Number(product[key]) * factor : 0;
+    if (list > 0 && Math.round(discounted(list, product)) * qty === Math.round(total)) {
+      original = list * qty;
+      percent = discountPercent(product);
+    }
+  }
+  const saved = Math.max(0, original - total);
+  return { total, original, saved, percent: saved ? percent : 0, unit: Number(order.unitPrice) || total / qty, unitWas: original / qty };
+}
+
+/**
+ * Customers are derived from orders and keyed by phone number. `orders` is newest first (as the
+ * collection is), so the first order seen supplies the latest name, address and date.
+ */
+export function buildCustomers(orders, users = []) {
+  const map = new Map();
+  orders.forEach((o) => {
+    const key = String(o.phone || o.id);
+    const c = map.get(key) || { key, phone: o.phone, name: o.name, email: o.email || '', account: false, city: o.city, address: o.address, pincode: o.pincode, orders: [], inr: 0, usd: 0, last: o.createdAt, first: o.createdAt };
+    c.orders.push(o);
+    c.email = c.email || o.email || '';
+    if (o.uid) c.account = true;
+    c.first = o.createdAt;
+    // Cancelled orders don't count as spend.
+    if (o.status !== 'cancelled') (o.currency === 'USD' ? (c.usd += Number(o.total || 0)) : (c.inr += Number(o.total || 0)));
+    map.set(key, c);
+  });
+  const list = [...map.values()];
+  // Sign-ups: attach each account to the customer whose orders carry its uid, or list it on its own until it orders.
+  const byUid = new Map();
+  list.forEach((c) => c.orders.forEach((o) => o.uid && byUid.set(o.uid, c)));
+  users.forEach((u) => {
+    const c = byUid.get(u.id);
+    if (c) {
+      c.email = c.email || u.email || '';
+      c.phone = c.phone || u.phone || '';
+      c.account = true;
+    } else {
+      list.push({ key: `u:${u.id}`, phone: u.phone || '', name: u.name || u.email || 'Customer', email: u.email || '', account: true, city: '', address: '', pincode: '', orders: [], inr: 0, usd: 0, last: null, first: u.createdAt || null });
+    }
+  });
+  return list;
+}
+export const fmtSpent = (c) => [c.inr && fmtMoney(c.inr), c.usd && fmtMoney(c.usd, 'USD')].filter(Boolean).join(' + ') || '—';
+
+/**
+ * Payment details the website shows customers (UPI and bank), kept in one document: settings/payment.
+ * `settings` is null until it has been saved once.
+ */
+export const PAYMENT_DEFAULTS = { upiId: 'jojirajuvarghese@oksbi', accountName: 'JOJI RAJU VARGHESE', bankName: 'SBI', accountNumber: '67241207811', ifsc: 'SBIN0070710', note: '' };
+export function usePaymentSettings() {
+  const [state, setState] = useState({ settings: null, loading: true, error: null });
+  useEffect(() => onSnapshot(
+    doc(db, 'settings', 'payment'),
+    (snap) => setState({ settings: snap.exists() ? snap.data() : null, loading: false, error: null }),
+    (error) => setState({ settings: null, loading: false, error }),
+  ), []);
+  return state;
+}
+export const savePaymentSettings = (data) => setDoc(doc(db, 'settings', 'payment'), { ...data, updatedAt: serverTimestamp() }, { merge: true });
+
+/** The public copy of an order that the website's payment page reads: amount and item, no personal details. */
+const paymentCopy = (o) => ({ total: Number(o.total) || 0, currency: o.currency || 'INR', productName: o.productName || '', weight: o.weight || '', quantity: Number(o.quantity) || 1, status: o.status || 'new', paid: !!o.paid });
+/** Creates or refreshes it, so orders placed before it existed get one too. */
+export const syncPayment = (o) => setDoc(doc(db, 'payments', o.id), { ...paymentCopy(o), updatedAt: serverTimestamp() }, { merge: true });
+export const markPaid = (order, paid) => {
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'orders', order.id), { paid, paidAt: paid ? serverTimestamp() : null, updatedAt: serverTimestamp() });
+  batch.set(doc(db, 'payments', order.id), { ...paymentCopy(order), paid, updatedAt: serverTimestamp() }, { merge: true });
+  return batch.commit();
+};
+export const deleteOrder = (id) => {
+  const batch = writeBatch(db);
+  batch.delete(doc(db, 'orders', id));
+  batch.delete(doc(db, 'payments', id));
+  return batch.commit();
+};
+
+/** Short, readable order number (letters and digits) taken from the order's document id, e.g. PK-9YINODZ1. */
+export const orderNo = (id = '') => `PK-${String(id).slice(0, 8).toUpperCase()}`;
 
 export const ORDER_STATUSES = ['new', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 // Stock is held once an order is confirmed, and released when it goes back to new or is cancelled.
@@ -171,6 +274,7 @@ export function setOrderStatus(orderId, status) {
       patch.stockDeducted = 0;
     }
     tx.update(orderRef, patch);
+    tx.set(doc(db, 'payments', orderId), { ...paymentCopy(order), status, updatedAt: serverTimestamp() }, { merge: true });
   });
 }
 

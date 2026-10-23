@@ -28,6 +28,17 @@ export const saveOrder = ({ product, weight, quantity, currency, total, name, ph
     createdAt: serverTimestamp(),
   });
 
+/**
+ * Products carry `discountPercent` (0 = none); prices stay undiscounted. Use for every price shown
+ * (cards, product page, cart, checkout) so the total sent to saveOrder is the discounted one:
+ *   const unit = discountedPrice(currency === 'INR' ? product.priceINR : product.priceUSD, product);
+ */
+export const discountPercent = (p) => {
+  const n = Number(p?.discountPercent);
+  return n > 0 && n < 100 ? n : 0;
+};
+export const discountedPrice = (price, p) => Math.round(Number(price) * (1 - discountPercent(p) / 100) * 100) / 100;
+
 /** Call from the contact form's handleSubmit: await saveMessage(formState); */
 export const saveMessage = ({ name, email, subject, message }) =>
   addDoc(collection(db, 'messages'), { name, email, subject, message, status: 'pending', createdAt: serverTimestamp() });

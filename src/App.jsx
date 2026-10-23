@@ -5,6 +5,9 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
+import OrderDetail from './pages/OrderDetail';
+import PaymentSettings from './pages/PaymentSettings';
+import CustomerDetail from './pages/CustomerDetail';
 import Messages from './pages/Messages';
 import MessageDetail from './pages/MessageDetail';
 import Customers from './pages/Customers';
@@ -39,15 +42,18 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="orders" element={<Orders />} />
+        <Route path="orders/:id" element={<OrderDetail />} />
         <Route path="messages" element={<Messages />} />
         <Route path="messages/:id" element={<MessageDetail />} />
         <Route path="customers" element={<Customers />} />
+        <Route path="customers/:key" element={<CustomerDetail />} />
         <Route path="products" element={<Products />} />
         <Route path="products/new" element={<ProductForm />} />
         <Route path="products/:id" element={<ProductForm />} />
         <Route path="settings/categories" element={<Categories />} />
         <Route path="settings/categories/new" element={<CategoryForm />} />
         <Route path="settings/categories/:id" element={<CategoryForm />} />
+        <Route path="settings/payment" element={<PaymentSettings />} />
         <Route path="settings/quantities" element={<Quantities />} />
         <Route path="settings/quantities/new" element={<QuantityForm />} />
         <Route path="settings/quantities/:id" element={<QuantityForm />} />
